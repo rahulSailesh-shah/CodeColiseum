@@ -9,6 +9,8 @@ export class Contest {
     public participant2: User;
     public participant1Code: string = "";
     public participant2Code: string = "";
+    public participant1Status: string = "";
+    public participant2Status: string = "";
     public viewers: User[] = [];
     public problem: string;
 
@@ -32,6 +34,17 @@ export class Contest {
         } else {
             console.log("User not in contest");
         }
+    }
+
+    submitCode(user: User, codeID: string) {
+        const code =
+            this.participant1.id === user.id
+                ? this.participant1Code
+                : this.participant2Code;
+        const participant =
+            this.participant1.id === user.id ? "participant1" : "participant2";
+
+        console.log(codeID, code, participant);
     }
 
     broadcast() {

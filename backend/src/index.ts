@@ -16,4 +16,7 @@ const contestManager = new ContestManager();
 wss.on("connection", (ws: WebSocket) => {
     ws.on("error", console.error);
     contestManager.addUsers(new User("user", ws));
+    ws.on("close", (data) => {
+        contestManager.removeUser(data.toString());
+    });
 });
