@@ -1,0 +1,3 @@
+export const INIT_CONTEST = "init_contest";
+export const JOIN_ROOM = "join_room";
+export const CODE_CHANGE = "code_change";
