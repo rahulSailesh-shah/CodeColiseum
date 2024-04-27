@@ -24,8 +24,7 @@ export class CodeExecution {
     async createSubmission() {
         const base64Code = Buffer.from(this.code).toString("base64");
         const languageId = parseInt(this.codeId);
-
         const result = await postSubmission(base64Code, languageId);
-        console.log(result);
+        return result;
     }
 }

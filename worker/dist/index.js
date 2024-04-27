@@ -15,23 +15,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const redis_1 = require("redis");
 const dotenv_1 = __importDefault(require("dotenv"));
 const CodeExecution_1 = require("./CodeExecution");
-dotenv_1.default.config();
+dotenv_1.default.config({ path: __dirname + "/.env" });
 function startWorker() {
     return __awaiter(this, void 0, void 0, function* () {
         const queueClient = (0, redis_1.createClient)();
-        const subscriberClient = (0, redis_1.createClient)();
+        const publisherClient = (0, redis_1.createClient)();
         yield queueClient.connect();
-        yield subscriberClient.connect();
+        yield publisherClient.connect();
         console.log("Worker Running");
         while (true) {
             const data = yield queueClient.brPop("code_queue", 0);
-            if (data) {
+            if (!data)
+                return;
+            try {
                 const result = JSON.parse(data.element);
-                console.log(result);
                 const { code, codeID, participant, contestID } = result;
                 const codeExecutor = new CodeExecution_1.CodeExecution(code, contestID, participant.id, codeID);
-                yield codeExecutor.createSubmission();
-                yield subscriberClient.publish(contestID, "Code executed successfully");
+                const submissionToken = yield codeExecutor.createSubmission();
+                yield publisherClient.publish(contestID, submissionToken.token);
+            }
+            catch (error) {
+                console.log(error);
             }
         }
     });

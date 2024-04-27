@@ -24,7 +24,7 @@ class CodeExecution {
             const base64Code = Buffer.from(this.code).toString("base64");
             const languageId = parseInt(this.codeId);
             const result = yield (0, api_1.postSubmission)(base64Code, languageId);
-            console.log(result);
+            return result;
         });
     }
 }
