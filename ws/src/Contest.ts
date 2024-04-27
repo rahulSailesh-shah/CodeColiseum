@@ -58,13 +58,15 @@ export class Contest {
                 ? this.participant1Code
                 : this.participant2Code;
         const participant =
-            this.participant1.id === user.id ? "participant1" : "participant2";
+            this.participant1.id === user.id
+                ? this.participant1
+                : this.participant2;
 
         const payload = {
             code,
             codeID,
             participant,
-            contestId: this.id,
+            contestID: this.id,
         };
 
         await this.redisQueue.lPush(CODE_QUEUE, JSON.stringify(payload));

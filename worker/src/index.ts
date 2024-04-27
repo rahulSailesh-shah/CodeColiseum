@@ -1,4 +1,8 @@
 import { createClient } from "redis";
+import dotenv from "dotenv";
+import { CodeExecution } from "./CodeExecution";
+
+dotenv.config();
 
 async function startWorker() {
     const queueClient = createClient();
@@ -11,11 +15,20 @@ async function startWorker() {
     while (true) {
         const data: any = await queueClient.brPop("code_queue", 0);
         if (data) {
-            console.log("Received Submission", data);
-            await new Promise((resolve) => setTimeout(resolve, 2000));
             const result = JSON.parse(data.element);
+            console.log(result);
+            const { code, codeID, participant, contestID } = result;
+
+            const codeExecutor = new CodeExecution(
+                code,
+                contestID,
+                participant.id,
+                codeID
+            );
+            await codeExecutor.createSubmission();
+
             await subscriberClient.publish(
-                result.contestId,
+                contestID,
                 "Code executed successfully"
             );
         }

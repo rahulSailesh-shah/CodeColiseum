@@ -54,12 +54,14 @@ class Contest {
             const code = this.participant1.id === user.id
                 ? this.participant1Code
                 : this.participant2Code;
-            const participant = this.participant1.id === user.id ? "participant1" : "participant2";
+            const participant = this.participant1.id === user.id
+                ? this.participant1
+                : this.participant2;
             const payload = {
                 code,
                 codeID,
                 participant,
-                contestId: this.id,
+                contestID: this.id,
             };
             yield this.redisQueue.lPush(messages_1.CODE_QUEUE, JSON.stringify(payload));
         });

@@ -8,8 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const redis_1 = require("redis");
+const dotenv_1 = __importDefault(require("dotenv"));
+const CodeExecution_1 = require("./CodeExecution");
+dotenv_1.default.config();
 function startWorker() {
     return __awaiter(this, void 0, void 0, function* () {
         const queueClient = (0, redis_1.createClient)();
@@ -20,10 +26,12 @@ function startWorker() {
         while (true) {
             const data = yield queueClient.brPop("code_queue", 0);
             if (data) {
-                console.log("Received Submission", data);
-                yield new Promise((resolve) => setTimeout(resolve, 2000));
                 const result = JSON.parse(data.element);
-                yield subscriberClient.publish(result.contestId, "Code executed successfully");
+                console.log(result);
+                const { code, codeID, participant, contestID } = result;
+                const codeExecutor = new CodeExecution_1.CodeExecution(code, contestID, participant.id, codeID);
+                yield codeExecutor.createSubmission();
+                yield subscriberClient.publish(contestID, "Code executed successfully");
             }
         }
     });
