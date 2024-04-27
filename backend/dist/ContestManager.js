@@ -96,7 +96,7 @@ class ContestManager {
                     console.log("Code ID not provided");
                     return;
                 }
-                this.handleCodeSubmit(user, message.payload.code);
+                this.handleCodeSubmit(user, message.payload.codeID);
             }
         }));
     }

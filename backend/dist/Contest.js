@@ -1,7 +1,18 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Contest = void 0;
 const crypto_1 = require("crypto");
+const redis_1 = require("redis");
+const messages_1 = require("./messages");
 class Contest {
     constructor(participant1, participant2, startTime, gameId) {
         this.startTime = new Date();
@@ -13,7 +24,19 @@ class Contest {
         this.participant1 = participant1;
         this.participant2 = participant2;
         this.id = gameId !== null && gameId !== void 0 ? gameId : (0, crypto_1.randomUUID)();
+        this.redisQueue = (0, redis_1.createClient)();
+        this.redisSubscriber = (0, redis_1.createClient)();
         this.problem = "";
+        this.connectRedis();
+    }
+    connectRedis() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.redisQueue.connect();
+            yield this.redisSubscriber.connect();
+            yield this.redisSubscriber.subscribe(this.id, (message) => {
+                console.log(message);
+            });
+        });
     }
     saveCodeProgress(user, code) {
         if (this.participant1.id === user.id) {
@@ -27,11 +50,19 @@ class Contest {
         }
     }
     submitCode(user, codeID) {
-        const code = this.participant1.id === user.id
-            ? this.participant1Code
-            : this.participant2Code;
-        const participant = this.participant1.id === user.id ? "participant1" : "participant2";
-        console.log(codeID, code, participant);
+        return __awaiter(this, void 0, void 0, function* () {
+            const code = this.participant1.id === user.id
+                ? this.participant1Code
+                : this.participant2Code;
+            const participant = this.participant1.id === user.id ? "participant1" : "participant2";
+            const payload = {
+                code,
+                codeID,
+                participant,
+                contestId: this.id,
+            };
+            yield this.redisQueue.lPush(messages_1.CODE_QUEUE, JSON.stringify(payload));
+        });
     }
     broadcast() {
         var _a;
