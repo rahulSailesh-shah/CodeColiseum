@@ -39,9 +39,9 @@ export class ContestManager {
         }
     }
 
-    handleJoinRoom(user: User, contestId: string) {
+    handleJoinRoom(user: User, contestID: string) {
         const contest = this.contests.find(
-            (contest) => contest.id === contestId
+            (contest) => contest.id === contestID
         );
         if (!contest) {
             console.log("Contest not found");
@@ -90,11 +90,11 @@ export class ContestManager {
             }
 
             if (message.type === JOIN_ROOM) {
-                if (!message.payload.contestId) {
+                if (!message.payload.contestID) {
                     console.log("Contest ID not provided");
                     return;
                 }
-                this.handleJoinRoom(user, message.payload.contestId);
+                this.handleJoinRoom(user, message.payload.contestID);
             }
 
             if (message.type === CODE_CHANGE) {
