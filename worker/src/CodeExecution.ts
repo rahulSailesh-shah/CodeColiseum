@@ -1,5 +1,4 @@
-import { parse } from "path";
-import { postSubmission } from "./api";
+import { getSubmission, postSubmission } from "./api";
 import { RedisClientType, createClient } from "redis";
 
 export class CodeExecution {
@@ -24,11 +23,11 @@ export class CodeExecution {
         this.connectPublisher();
     }
 
-    async connectPublisher() {
+    private async connectPublisher() {
         await this.publisherClient.connect();
     }
 
-    async createSubmission() {
+    public async createSubmission() {
         const base64Code = Buffer.from(this.code).toString("base64");
         const languageId = parseInt(this.codeId);
         const result = await postSubmission(base64Code, languageId);
@@ -36,16 +35,20 @@ export class CodeExecution {
         return result;
     }
 
-    async pollSubmission(submissionToken: string) {
-        console.log("Polling for submission");
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        console.log("Got the result after polling");
-        this.broadcastResult();
+    private async pollSubmission(submissionToken: string) {
+        let statusID: number = 1;
+        let result: any;
+        while (statusID === 1 || statusID === 2) {
+            result = await getSubmission(submissionToken);
+            statusID = result.status.id;
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            console.log(statusID);
+        }
+
+        this.broadcastResult(result.status.description);
     }
 
-    async broadcastResult() {
-        console.log("Broadcasting the result");
-        await this.publisherClient.publish(this.contestId, "result");
-        console.log("Result broadcasted");
+    private async broadcastResult(description: string) {
+        await this.publisherClient.publish(this.contestId, description);
     }
 }

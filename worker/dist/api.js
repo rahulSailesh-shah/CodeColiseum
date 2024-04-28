@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postSubmission = void 0;
+exports.getSubmission = exports.postSubmission = void 0;
 const axios_1 = __importDefault(require("axios"));
 function postSubmission(code, language_id) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -44,3 +44,27 @@ function postSubmission(code, language_id) {
     });
 }
 exports.postSubmission = postSubmission;
+function getSubmission(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: "GET",
+            url: `https://judge0-ce.p.rapidapi.com/submissions/${token}`,
+            params: {
+                base64_encoded: "true",
+                fields: "*",
+            },
+            headers: {
+                "X-RapidAPI-Key": process.env.JUDGE0_API_KEY,
+                "X-RapidAPI-Host": process.env.JUDGE0_API_HOST,
+            },
+        };
+        try {
+            const response = yield axios_1.default.request(options);
+            return response.data;
+        }
+        catch (error) {
+            return error;
+        }
+    });
+}
+exports.getSubmission = getSubmission;

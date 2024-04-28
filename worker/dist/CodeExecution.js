@@ -38,17 +38,20 @@ class CodeExecution {
     }
     pollSubmission(submissionToken) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Polling for submission");
-            yield new Promise((resolve) => setTimeout(resolve, 5000));
-            console.log("Got the result after polling");
-            this.broadcastResult();
+            let statusID = 1;
+            let result;
+            while (statusID === 1 || statusID === 2) {
+                result = yield (0, api_1.getSubmission)(submissionToken);
+                statusID = result.status.id;
+                yield new Promise((resolve) => setTimeout(resolve, 2000));
+                console.log(statusID);
+            }
+            this.broadcastResult(result.status.description);
         });
     }
-    broadcastResult() {
+    broadcastResult(description) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Broadcasting the result");
-            yield this.publisherClient.publish(this.contestId, "result");
-            console.log("Result broadcasted");
+            yield this.publisherClient.publish(this.contestId, description);
         });
     }
 }

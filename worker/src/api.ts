@@ -26,3 +26,25 @@ export async function postSubmission(code: string, language_id: number) {
         return error;
     }
 }
+
+export async function getSubmission(token: string) {
+    const options = {
+        method: "GET",
+        url: `https://judge0-ce.p.rapidapi.com/submissions/${token}`,
+        params: {
+            base64_encoded: "true",
+            fields: "*",
+        },
+        headers: {
+            "X-RapidAPI-Key": process.env.JUDGE0_API_KEY,
+            "X-RapidAPI-Host": process.env.JUDGE0_API_HOST,
+        },
+    };
+
+    try {
+        const response = await axios.request(options);
+        return response.data;
+    } catch (error) {
+        return error;
+    }
+}

@@ -28,7 +28,6 @@ async function startWorker() {
             );
             const submissionToken = await codeExecutor.createSubmission();
             await publisherClient.publish(contestID, submissionToken.token);
-            console.log("Token sent");
         } catch (error) {
             console.log(error);
         }

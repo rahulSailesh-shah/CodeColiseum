@@ -33,7 +33,6 @@ function startWorker() {
                 const codeExecutor = new CodeExecution_1.CodeExecution(code, contestID, participant.id, codeID);
                 const submissionToken = yield codeExecutor.createSubmission();
                 yield publisherClient.publish(contestID, submissionToken.token);
-                console.log("Token sent");
             }
             catch (error) {
                 console.log(error);
