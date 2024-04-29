@@ -45,7 +45,6 @@ class CodeExecution {
                 result = yield (0, api_1.getSubmission)(submissionToken);
                 statusID = result.status.id;
                 yield new Promise((resolve) => setTimeout(resolve, 2000));
-                console.log(statusID);
             }
             this.broadcastResult(result);
         });
@@ -57,7 +56,7 @@ class CodeExecution {
                 type: messages_1.SUBMISSION_RESULT,
                 payload: {
                     stdout: stdout,
-                    particpant: this.particpant,
+                    participant: this.particpant,
                     description: result.status.description,
                 },
             };

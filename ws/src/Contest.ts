@@ -3,7 +3,7 @@ import { WebSocket } from "ws";
 import { User } from "./SocketManager";
 import { createClient, RedisClientType } from "redis";
 import { connect } from "http2";
-import { CODE_QUEUE } from "./messages";
+import { CODE_QUEUE, SUBMISSION_RESULT, SUBMISSION_TOKEN } from "./messages";
 
 export class Contest {
     public id: string;
@@ -37,9 +37,48 @@ export class Contest {
     async connectRedis() {
         await this.redisQueue.connect();
         await this.redisSubscriber.connect();
-        await this.redisSubscriber.subscribe(this.id, (message) => {
-            const data = JSON.parse(message);
-            console.log(data);
+        await this.redisSubscriber.subscribe(this.id, (data) => {
+            const message = JSON.parse(data);
+            console.log(message);
+
+            if (message.type === SUBMISSION_TOKEN) {
+                const { token, participant } = message.payload;
+                const user =
+                    this.participant1.id === participant.id
+                        ? this.participant1
+                        : this.participant2;
+                user.socket.send(
+                    JSON.stringify({ type: SUBMISSION_TOKEN, payload: token })
+                );
+            }
+
+            if (message.type === SUBMISSION_RESULT) {
+                const { stdout, participant, description } = message.payload;
+                const user =
+                    this.participant1.id === participant.id
+                        ? this.participant1
+                        : this.participant2;
+                user.socket.send(
+                    JSON.stringify({
+                        type: SUBMISSION_RESULT,
+                        payload: {
+                            stdout,
+                            description,
+                        },
+                    })
+                );
+                this.viewers?.forEach((viewer) => {
+                    viewer.socket.send(
+                        JSON.stringify({
+                            type: SUBMISSION_RESULT,
+                            payload: {
+                                stdout,
+                                description,
+                            },
+                        })
+                    );
+                });
+            }
         });
     }
 

@@ -33,9 +33,39 @@ class Contest {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.redisQueue.connect();
             yield this.redisSubscriber.connect();
-            yield this.redisSubscriber.subscribe(this.id, (message) => {
-                const data = JSON.parse(message);
-                console.log(data);
+            yield this.redisSubscriber.subscribe(this.id, (data) => {
+                var _a;
+                const message = JSON.parse(data);
+                console.log(message);
+                if (message.type === messages_1.SUBMISSION_TOKEN) {
+                    const { token, participant } = message.payload;
+                    const user = this.participant1.id === participant.id
+                        ? this.participant1
+                        : this.participant2;
+                    user.socket.send(JSON.stringify({ type: messages_1.SUBMISSION_TOKEN, payload: token }));
+                }
+                if (message.type === messages_1.SUBMISSION_RESULT) {
+                    const { stdout, participant, description } = message.payload;
+                    const user = this.participant1.id === participant.id
+                        ? this.participant1
+                        : this.participant2;
+                    user.socket.send(JSON.stringify({
+                        type: messages_1.SUBMISSION_RESULT,
+                        payload: {
+                            stdout,
+                            description,
+                        },
+                    }));
+                    (_a = this.viewers) === null || _a === void 0 ? void 0 : _a.forEach((viewer) => {
+                        viewer.socket.send(JSON.stringify({
+                            type: messages_1.SUBMISSION_RESULT,
+                            payload: {
+                                stdout,
+                                description,
+                            },
+                        }));
+                    });
+                }
             });
         });
     }

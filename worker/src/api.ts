@@ -23,6 +23,7 @@ export async function postSubmission(code: string, language_id: number) {
         const response = await axios.request(options);
         return response.data;
     } catch (error: any) {
+        console.log("POST SUBMISSION API ERROR", error.response.data);
         return error;
     }
 }
@@ -44,7 +45,8 @@ export async function getSubmission(token: string) {
     try {
         const response = await axios.request(options);
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
+        console.log("GET SUBMISSION API ERROR", error.response.data);
         return error;
     }
 }

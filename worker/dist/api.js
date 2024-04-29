@@ -39,6 +39,7 @@ function postSubmission(code, language_id) {
             return response.data;
         }
         catch (error) {
+            console.log("POST SUBMISSION API ERROR", error.response.data);
             return error;
         }
     });

@@ -50,7 +50,6 @@ export class CodeExecution {
             result = await getSubmission(submissionToken);
             statusID = result.status.id;
             await new Promise((resolve) => setTimeout(resolve, 2000));
-            console.log(statusID);
         }
 
         this.broadcastResult(result);
@@ -62,7 +61,7 @@ export class CodeExecution {
             type: SUBMISSION_RESULT,
             payload: {
                 stdout: stdout,
-                particpant: this.particpant,
+                participant: this.particpant,
                 description: result.status.description,
             },
         };
