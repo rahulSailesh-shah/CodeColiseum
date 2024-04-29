@@ -12,12 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CodeExecution = void 0;
 const api_1 = require("./api");
 const redis_1 = require("redis");
+const messages_1 = require("./messages");
 class CodeExecution {
-    constructor(code, contestId, userId, codeId) {
+    constructor(code, contestId, particpant, codeId) {
         this.publisherClient = (0, redis_1.createClient)();
         this.code = code;
         this.contestId = contestId;
-        this.userId = userId;
+        this.particpant = particpant;
         this.codeId = codeId;
         this.status = "";
         this.connectPublisher();
@@ -46,12 +47,21 @@ class CodeExecution {
                 yield new Promise((resolve) => setTimeout(resolve, 2000));
                 console.log(statusID);
             }
-            this.broadcastResult(result.status.description);
+            this.broadcastResult(result);
         });
     }
-    broadcastResult(description) {
+    broadcastResult(result) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.publisherClient.publish(this.contestId, description);
+            const stdout = Buffer.from(result.stdout, "base64").toString("utf-8");
+            const message = {
+                type: messages_1.SUBMISSION_RESULT,
+                payload: {
+                    stdout: stdout,
+                    particpant: this.particpant,
+                    description: result.status.description,
+                },
+            };
+            yield this.publisherClient.publish(this.contestId, JSON.stringify(message));
         });
     }
 }

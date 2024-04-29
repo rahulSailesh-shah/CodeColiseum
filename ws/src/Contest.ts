@@ -38,7 +38,8 @@ export class Contest {
         await this.redisQueue.connect();
         await this.redisSubscriber.connect();
         await this.redisSubscriber.subscribe(this.id, (message) => {
-            console.log(message);
+            const data = JSON.parse(message);
+            console.log(data);
         });
     }
 

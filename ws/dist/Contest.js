@@ -34,7 +34,8 @@ class Contest {
             yield this.redisQueue.connect();
             yield this.redisSubscriber.connect();
             yield this.redisSubscriber.subscribe(this.id, (message) => {
-                console.log(message);
+                const data = JSON.parse(message);
+                console.log(data);
             });
         });
     }

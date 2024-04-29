@@ -1,10 +1,18 @@
+import { stdout } from "process";
 import { getSubmission, postSubmission } from "./api";
 import { RedisClientType, createClient } from "redis";
+import { SUBMISSION_RESULT } from "./messages";
+
+interface User {
+    id: string;
+    name: string;
+    socket: WebSocket;
+}
 
 export class CodeExecution {
     public code: string;
     public contestId: string;
-    public userId: string;
+    public particpant: User;
     public codeId: string;
     public status: string;
     public publisherClient: RedisClientType = createClient();
@@ -12,12 +20,12 @@ export class CodeExecution {
     constructor(
         code: string,
         contestId: string,
-        userId: string,
+        particpant: User,
         codeId: string
     ) {
         this.code = code;
         this.contestId = contestId;
-        this.userId = userId;
+        this.particpant = particpant;
         this.codeId = codeId;
         this.status = "";
         this.connectPublisher();
@@ -45,10 +53,22 @@ export class CodeExecution {
             console.log(statusID);
         }
 
-        this.broadcastResult(result.status.description);
+        this.broadcastResult(result);
     }
 
-    private async broadcastResult(description: string) {
-        await this.publisherClient.publish(this.contestId, description);
+    private async broadcastResult(result: any) {
+        const stdout = Buffer.from(result.stdout, "base64").toString("utf-8");
+        const message = {
+            type: SUBMISSION_RESULT,
+            payload: {
+                stdout: stdout,
+                particpant: this.particpant,
+                description: result.status.description,
+            },
+        };
+        await this.publisherClient.publish(
+            this.contestId,
+            JSON.stringify(message)
+        );
     }
 }

@@ -1,6 +1,7 @@
 import { createClient } from "redis";
 import dotenv from "dotenv";
 import { CodeExecution } from "./CodeExecution";
+import { CODE_QUEUE, SUBMISSION_TOKEN } from "./messages";
 
 dotenv.config({ path: __dirname + "/.env" });
 
@@ -13,7 +14,7 @@ async function startWorker() {
     console.log("Worker Running");
 
     while (true) {
-        const data: any = await queueClient.brPop("code_queue", 0);
+        const data: any = await queueClient.brPop(CODE_QUEUE, 0);
         if (!data) return;
 
         try {
@@ -23,11 +24,18 @@ async function startWorker() {
             const codeExecutor = new CodeExecution(
                 code,
                 contestID,
-                participant.id,
+                participant,
                 codeID
             );
             const submissionToken = await codeExecutor.createSubmission();
-            await publisherClient.publish(contestID, submissionToken.token);
+            const message = {
+                type: SUBMISSION_TOKEN,
+                payload: {
+                    token: submissionToken.token,
+                    participant,
+                },
+            };
+            await publisherClient.publish(contestID, JSON.stringify(message));
         } catch (error) {
             console.log(error);
         }
