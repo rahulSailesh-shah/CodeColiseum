@@ -64,6 +64,7 @@ function getSubmission(token) {
             return response.data;
         }
         catch (error) {
+            console.log("GET SUBMISSION API ERROR", error.response.data);
             return error;
         }
     });

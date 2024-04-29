@@ -74,6 +74,10 @@ export class Contest {
                             payload: {
                                 stdout,
                                 description,
+                                participant: {
+                                    id: participant.id,
+                                    username: participant.name,
+                                },
                             },
                         })
                     );

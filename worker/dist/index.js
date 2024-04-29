@@ -31,6 +31,10 @@ function startWorker() {
             try {
                 const result = JSON.parse(data.element);
                 const { code, codeID, participant, contestID } = result;
+                if (code === "") {
+                    console.log("Code is empty");
+                    continue;
+                }
                 const codeExecutor = new CodeExecution_1.CodeExecution(code, contestID, participant, codeID);
                 const submissionToken = yield codeExecutor.createSubmission();
                 const message = {
