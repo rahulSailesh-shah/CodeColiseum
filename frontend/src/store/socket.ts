@@ -8,7 +8,7 @@ type Action = {
     setSocket: (firstName: SocketStore["socket"]) => void;
 };
 
-export const useSocketStore = create<SocketStore & Action>((set) => ({
+export const socketStore = create<SocketStore & Action>((set) => ({
     socket: null,
     setSocket: (socket) => set({ socket }),
 }));

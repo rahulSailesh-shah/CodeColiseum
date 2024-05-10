@@ -11,7 +11,7 @@ function App() {
         const socket = new WebSocket("ws://localhost:8080");
         socket.onopen = () => {
             setSocket(socket);
-            console.log("Connected to server");
+            console.log("Connected to Socket Server");
         };
     });
 

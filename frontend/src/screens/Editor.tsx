@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
-import { useSocketStore } from "@/store";
+import { useCodeStore, useSocketStore } from "../store";
 
 export const EditorScreen = () => {
-    const [code, setCode] = useState<string | undefined>("");
+    const { setCode, code } = useCodeStore((state) => state);
     const socket = useSocketStore((state) => state.socket);
+
     const debouncedCode = useDebouncedValue(code);
 
     useEffect(() => {
@@ -22,7 +23,6 @@ export const EditorScreen = () => {
     }, [debouncedCode]);
 
     const submitCode = () => {
-        console.log(code);
         socket?.send(
             JSON.stringify({
                 type: "code_submit",
