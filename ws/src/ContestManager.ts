@@ -64,6 +64,7 @@ export class ContestManager {
             console.log("Contest not found");
             return;
         }
+        console.log(`[.] ${user.id} changed code: ${code}`);
         contest.saveCodeProgress(user, code);
         contest.broadcast();
     }
@@ -98,7 +99,7 @@ export class ContestManager {
             }
 
             if (message.type === CODE_CHANGE) {
-                if (!message.payload.code) {
+                if (!message.payload.code && message.payload.code !== "") {
                     console.log("Code not provided");
                     return;
                 }

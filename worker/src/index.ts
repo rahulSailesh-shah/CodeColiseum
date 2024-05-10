@@ -20,6 +20,8 @@ async function startWorker() {
         try {
             const result = JSON.parse(data.element);
             const { code, codeID, participant, contestID } = result;
+            console.log("Received Submission", participant.id);
+
             if (code === "") {
                 console.log("Code is empty");
                 continue;

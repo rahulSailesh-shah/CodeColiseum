@@ -60,6 +60,7 @@ class ContestManager {
             console.log("Contest not found");
             return;
         }
+        console.log(`[.] ${user.id} changed code: ${code}`);
         contest.saveCodeProgress(user, code);
         contest.broadcast();
     }
@@ -85,7 +86,7 @@ class ContestManager {
                 this.handleJoinRoom(user, message.payload.contestID);
             }
             if (message.type === messages_1.CODE_CHANGE) {
-                if (!message.payload.code) {
+                if (!message.payload.code && message.payload.code !== "") {
                     console.log("Code not provided");
                     return;
                 }
