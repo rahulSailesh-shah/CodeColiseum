@@ -9,7 +9,7 @@ export class Contest {
     public id: string;
     public startTime: Date = new Date();
     public participant1: User;
-    public participant2: User;
+    public participant2: User | undefined;
     public participant1Code: string = "";
     public participant2Code: string = "";
     public participant1Status: string = "";
@@ -19,15 +19,10 @@ export class Contest {
     public redisQueue: RedisClientType;
     public redisSubscriber: RedisClientType;
 
-    constructor(
-        participant1: User,
-        participant2: User,
-        startTime?: Date,
-        gameId?: string
-    ) {
+    constructor(participant1: User, startTime?: Date) {
         this.participant1 = participant1;
-        this.participant2 = participant2;
-        this.id = gameId ?? randomUUID();
+        this.participant2 = undefined;
+        this.id = randomUUID();
         this.redisQueue = createClient();
         this.redisSubscriber = createClient();
         this.problem = "";
@@ -47,7 +42,7 @@ export class Contest {
                     this.participant1.id === participant.id
                         ? this.participant1
                         : this.participant2;
-                user.socket.send(
+                user?.socket.send(
                     JSON.stringify({ type: SUBMISSION_TOKEN, payload: token })
                 );
             }
@@ -58,7 +53,7 @@ export class Contest {
                     this.participant1.id === participant.id
                         ? this.participant1
                         : this.participant2;
-                user.socket.send(
+                user?.socket.send(
                     JSON.stringify({
                         type: SUBMISSION_RESULT,
                         payload: {
@@ -89,7 +84,7 @@ export class Contest {
     saveCodeProgress(user: User, code: string) {
         if (this.participant1.id === user.id) {
             this.participant1Code = code;
-        } else if (this.participant2.id === user.id) {
+        } else if (this.participant2?.id === user.id) {
             this.participant2Code = code;
         } else {
             console.log("User not in contest");
@@ -116,16 +111,8 @@ export class Contest {
         await this.redisQueue.lPush(CODE_QUEUE, JSON.stringify(payload));
     }
 
-    broadcast() {
-        const message = {
-            type: "code_change",
-            payload: {
-                participant1Code: this.participant1Code,
-                participant2Code: this.participant2Code,
-            },
-        };
-
-        this.viewers?.forEach((viewer) => {
+    broadcast(message: any, viewers: User[] = this.viewers) {
+        viewers?.forEach((viewer) => {
             viewer.socket.send(JSON.stringify(message));
         });
     }

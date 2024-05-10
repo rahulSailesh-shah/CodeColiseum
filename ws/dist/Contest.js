@@ -14,7 +14,7 @@ const crypto_1 = require("crypto");
 const redis_1 = require("redis");
 const messages_1 = require("./messages");
 class Contest {
-    constructor(participant1, participant2, startTime, gameId) {
+    constructor(participant1, startTime) {
         this.startTime = new Date();
         this.participant1Code = "";
         this.participant2Code = "";
@@ -22,8 +22,8 @@ class Contest {
         this.participant2Status = "";
         this.viewers = [];
         this.participant1 = participant1;
-        this.participant2 = participant2;
-        this.id = gameId !== null && gameId !== void 0 ? gameId : (0, crypto_1.randomUUID)();
+        this.participant2 = undefined;
+        this.id = (0, crypto_1.randomUUID)();
         this.redisQueue = (0, redis_1.createClient)();
         this.redisSubscriber = (0, redis_1.createClient)();
         this.problem = "";
@@ -42,14 +42,14 @@ class Contest {
                     const user = this.participant1.id === participant.id
                         ? this.participant1
                         : this.participant2;
-                    user.socket.send(JSON.stringify({ type: messages_1.SUBMISSION_TOKEN, payload: token }));
+                    user === null || user === void 0 ? void 0 : user.socket.send(JSON.stringify({ type: messages_1.SUBMISSION_TOKEN, payload: token }));
                 }
                 if (message.type === messages_1.SUBMISSION_RESULT) {
                     const { stdout, participant, description } = message.payload;
                     const user = this.participant1.id === participant.id
                         ? this.participant1
                         : this.participant2;
-                    user.socket.send(JSON.stringify({
+                    user === null || user === void 0 ? void 0 : user.socket.send(JSON.stringify({
                         type: messages_1.SUBMISSION_RESULT,
                         payload: {
                             stdout,
@@ -74,10 +74,11 @@ class Contest {
         });
     }
     saveCodeProgress(user, code) {
+        var _a;
         if (this.participant1.id === user.id) {
             this.participant1Code = code;
         }
-        else if (this.participant2.id === user.id) {
+        else if (((_a = this.participant2) === null || _a === void 0 ? void 0 : _a.id) === user.id) {
             this.participant2Code = code;
         }
         else {
@@ -101,16 +102,8 @@ class Contest {
             yield this.redisQueue.lPush(messages_1.CODE_QUEUE, JSON.stringify(payload));
         });
     }
-    broadcast() {
-        var _a;
-        const message = {
-            type: "code_change",
-            payload: {
-                participant1Code: this.participant1Code,
-                participant2Code: this.participant2Code,
-            },
-        };
-        (_a = this.viewers) === null || _a === void 0 ? void 0 : _a.forEach((viewer) => {
+    broadcast(message, viewers = this.viewers) {
+        viewers === null || viewers === void 0 ? void 0 : viewers.forEach((viewer) => {
             viewer.socket.send(JSON.stringify(message));
         });
     }

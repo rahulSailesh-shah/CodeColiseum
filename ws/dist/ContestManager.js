@@ -20,29 +20,32 @@ class ContestManager {
     }
     addUsers(user) {
         this.users.push(user);
+        const broadcastMessage = {
+            type: "user_joined",
+            payload: {
+                userId: user.id,
+            },
+        };
+        user.socket.send(JSON.stringify(broadcastMessage));
         this.handler(user);
     }
     removeUser(userId) {
-        // TODO: Logic to remove user if viewer
-        // TODO: Logic to remove user if participant and update status
+        // TODO: Logic to remove user if viewer leaves
+        // TODO: Logic to remove user if participant leaves and update status
     }
     initContest(user) {
-        if (this.pendingUser) {
-            if (this.pendingUser.id === user.id) {
-                console.log("You can't play against yourself");
-                return;
-            }
-            const contest = new Contest_1.Contest(this.pendingUser, user);
-            this.contests.push(contest);
-            this.pendingUser = null;
-            console.log("NEW CONTEST", contest.id);
-        }
-        else {
-            console.log("Player 1 waiting");
-            this.pendingUser = user;
-        }
+        const contest = new Contest_1.Contest(user);
+        this.contests.push(contest);
+        console.log("NEW CONTEST\n", contest.id);
+        const message = {
+            type: "room_created",
+            payload: {
+                contestID: contest.id,
+            },
+        };
+        contest.broadcast(message, [user]);
     }
-    handleJoinRoom(user, contestID) {
+    handleViewerJoinRoom(user, contestID) {
         const contest = this.contests.find((contest) => contest.id === contestID);
         if (!contest) {
             console.log("Contest not found");
@@ -51,21 +54,35 @@ class ContestManager {
         contest.viewers.find((x) => x.id === user.id)
             ? console.log("You're already a viewer")
             : contest.viewers.push(user);
-        contest.broadcast();
+        const broadcastMessage = {
+            type: "code_change",
+            payload: {
+                participant1Code: contest.participant1Code,
+                participant2Code: contest.participant2Code,
+            },
+        };
+        contest.broadcast(broadcastMessage, contest.viewers);
         console.log(contest.viewers.length, " viewers");
     }
     handleCodeChange(user, code) {
-        const contest = this.contests.find((x) => x.participant1.id === user.id || x.participant2.id === user.id);
+        const contest = this.contests.find((x) => { var _a; return x.participant1.id === user.id || ((_a = x.participant2) === null || _a === void 0 ? void 0 : _a.id) === user.id; });
         if (!contest) {
             console.log("Contest not found");
             return;
         }
         console.log(`[.] ${user.id} changed code: ${code}`);
         contest.saveCodeProgress(user, code);
-        contest.broadcast();
+        const broadcastMessage = {
+            type: "code_change",
+            payload: {
+                participant1Code: contest.participant1Code,
+                participant2Code: contest.participant2Code,
+            },
+        };
+        contest.broadcast(broadcastMessage, contest.viewers);
     }
     handleCodeSubmit(user, codeID) {
-        const contest = this.contests.find((x) => x.participant1.id === user.id || x.participant2.id === user.id);
+        const contest = this.contests.find((x) => { var _a; return x.participant1.id === user.id || ((_a = x.participant2) === null || _a === void 0 ? void 0 : _a.id) === user.id; });
         if (!contest) {
             console.log("You are not in a contest");
             return;
@@ -83,7 +100,7 @@ class ContestManager {
                     console.log("Contest ID not provided");
                     return;
                 }
-                this.handleJoinRoom(user, message.payload.contestID);
+                this.handleViewerJoinRoom(user, message.payload.contestID);
             }
             if (message.type === messages_1.CODE_CHANGE) {
                 if (!message.payload.code && message.payload.code !== "") {
@@ -98,6 +115,49 @@ class ContestManager {
                     return;
                 }
                 this.handleCodeSubmit(user, message.payload.codeID);
+            }
+            if (message.type === messages_1.JOIN_REQUEST) {
+                const contestId = message.payload.contestId;
+                const contest = this.contests.find((contest) => contest.id === contestId);
+                if (!contest) {
+                    console.log("Contest not found");
+                    return;
+                }
+                const broadcastMessage = {
+                    type: messages_1.JOIN_REQUEST,
+                    payload: {
+                        userId: user.id,
+                    },
+                };
+                contest.broadcast(broadcastMessage, [contest.participant1]);
+            }
+            if (message.type === messages_1.ACCEPT_REQUEST) {
+                const { contestId, userId } = message.payload;
+                const contest = this.contests.find((contest) => contest.id === contestId);
+                if (!contest) {
+                    console.log("Contest not found");
+                    return;
+                }
+                if (contest.participant2 && contest.participant1) {
+                    console.log("Contest is full");
+                    return;
+                }
+                const participant2 = this.users.find((user) => user.id === userId);
+                if (!participant2) {
+                    console.log("User not found");
+                    return;
+                }
+                contest.participant2 = participant2;
+                const broadcastMessage = {
+                    type: messages_1.CONTEST_FULL,
+                    payload: {
+                        contestId,
+                    },
+                };
+                contest.broadcast(broadcastMessage, [
+                    contest.participant1,
+                    contest.participant2,
+                ]);
             }
         }));
     }

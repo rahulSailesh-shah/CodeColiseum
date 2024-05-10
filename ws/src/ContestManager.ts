@@ -1,5 +1,14 @@
 import { Contest } from "./Contest";
-import { CODE_CHANGE, INIT_CONTEST, JOIN_ROOM, CODE_SUBMIT } from "./messages";
+import {
+    CODE_CHANGE,
+    INIT_CONTEST,
+    JOIN_ROOM,
+    CODE_SUBMIT,
+    JOIN_REQUEST,
+    ACCEPT_REQUEST,
+    DECLINE_REQUEST,
+    CONTEST_FULL,
+} from "./messages";
 import { User } from "./SocketManager";
 
 export class ContestManager {
@@ -14,32 +23,37 @@ export class ContestManager {
 
     addUsers(user: User) {
         this.users.push(user);
+        const broadcastMessage = {
+            type: "user_joined",
+            payload: {
+                userId: user.id,
+            },
+        };
+        user.socket.send(JSON.stringify(broadcastMessage));
+
         this.handler(user);
     }
 
     removeUser(userId: string) {
-        // TODO: Logic to remove user if viewer
-        // TODO: Logic to remove user if participant and update status
+        // TODO: Logic to remove user if viewer leaves
+        // TODO: Logic to remove user if participant leaves and update status
     }
 
     initContest(user: User) {
-        if (this.pendingUser) {
-            if (this.pendingUser.id === user.id) {
-                console.log("You can't play against yourself");
-                return;
-            }
+        const contest = new Contest(user);
+        this.contests.push(contest);
+        console.log("NEW CONTEST\n", contest.id);
 
-            const contest = new Contest(this.pendingUser, user);
-            this.contests.push(contest);
-            this.pendingUser = null;
-            console.log("NEW CONTEST", contest.id);
-        } else {
-            console.log("Player 1 waiting");
-            this.pendingUser = user;
-        }
+        const message = {
+            type: "room_created",
+            payload: {
+                contestID: contest.id,
+            },
+        };
+        contest.broadcast(message, [user]);
     }
 
-    handleJoinRoom(user: User, contestID: string) {
+    handleViewerJoinRoom(user: User, contestID: string) {
         const contest = this.contests.find(
             (contest) => contest.id === contestID
         );
@@ -51,14 +65,21 @@ export class ContestManager {
             ? console.log("You're already a viewer")
             : contest.viewers.push(user);
 
-        contest.broadcast();
+        const broadcastMessage = {
+            type: "code_change",
+            payload: {
+                participant1Code: contest.participant1Code,
+                participant2Code: contest.participant2Code,
+            },
+        };
+        contest.broadcast(broadcastMessage, contest.viewers);
         console.log(contest.viewers.length, " viewers");
     }
 
     handleCodeChange(user: User, code: string) {
         const contest = this.contests.find(
             (x) =>
-                x.participant1.id === user.id || x.participant2.id === user.id
+                x.participant1.id === user.id || x.participant2?.id === user.id
         );
         if (!contest) {
             console.log("Contest not found");
@@ -66,13 +87,21 @@ export class ContestManager {
         }
         console.log(`[.] ${user.id} changed code: ${code}`);
         contest.saveCodeProgress(user, code);
-        contest.broadcast();
+
+        const broadcastMessage = {
+            type: "code_change",
+            payload: {
+                participant1Code: contest.participant1Code,
+                participant2Code: contest.participant2Code,
+            },
+        };
+        contest.broadcast(broadcastMessage, contest.viewers);
     }
 
     handleCodeSubmit(user: User, codeID: string) {
         const contest = this.contests.find(
             (x) =>
-                x.participant1.id === user.id || x.participant2.id === user.id
+                x.participant1.id === user.id || x.participant2?.id === user.id
         );
         if (!contest) {
             console.log("You are not in a contest");
@@ -95,7 +124,7 @@ export class ContestManager {
                     console.log("Contest ID not provided");
                     return;
                 }
-                this.handleJoinRoom(user, message.payload.contestID);
+                this.handleViewerJoinRoom(user, message.payload.contestID);
             }
 
             if (message.type === CODE_CHANGE) {
@@ -112,6 +141,77 @@ export class ContestManager {
                     return;
                 }
                 this.handleCodeSubmit(user, message.payload.codeID);
+            }
+
+            if (message.type === JOIN_REQUEST) {
+                const contestId = message.payload.contestId;
+                const contest = this.contests.find(
+                    (contest) => contest.id === contestId
+                );
+                if (!contest) {
+                    console.log("Contest not found");
+                    return;
+                }
+                const broadcastMessage = {
+                    type: JOIN_REQUEST,
+                    payload: {
+                        userId: user.id,
+                    },
+                };
+
+                contest.broadcast(broadcastMessage, [contest.participant1]);
+            }
+
+            if (message.type === ACCEPT_REQUEST) {
+                const { contestId, userId } = message.payload;
+                const contest = this.contests.find(
+                    (contest) => contest.id === contestId
+                );
+                if (!contest) {
+                    console.log("Contest not found");
+                    return;
+                }
+                if (contest.participant2 && contest.participant1) {
+                    console.log("Contest is full");
+                    return;
+                }
+                const participant2 = this.users.find(
+                    (user) => user.id === userId
+                );
+                if (!participant2) {
+                    console.log("User not found");
+                    return;
+                }
+                contest.participant2 = participant2;
+                const broadcastMessage = {
+                    type: CONTEST_FULL,
+                    payload: {
+                        contestId,
+                    },
+                };
+
+                contest.broadcast(broadcastMessage, [
+                    contest.participant1,
+                    contest.participant2,
+                ]);
+            }
+
+            if (message.type === DECLINE_REQUEST) {
+                const { userId } = message.payload;
+                const participant = this.users.find(
+                    (user) => user.id === userId
+                );
+                if (!participant) {
+                    console.log("User not found");
+                    return;
+                }
+                const broadcastMessage = {
+                    type: DECLINE_REQUEST,
+                    payload: {
+                        message: "Request declined",
+                    },
+                };
+                participant.socket.send(JSON.stringify(broadcastMessage));
             }
         });
     }
