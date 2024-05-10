@@ -14,7 +14,6 @@ const Contest_1 = require("./Contest");
 const messages_1 = require("./messages");
 class ContestManager {
     constructor() {
-        this.pendingUser = null;
         this.contests = [];
         this.users = [];
     }
@@ -158,6 +157,21 @@ class ContestManager {
                     contest.participant1,
                     contest.participant2,
                 ]);
+            }
+            if (message.type === messages_1.DECLINE_REQUEST) {
+                const { userId } = message.payload;
+                const participant = this.users.find((user) => user.id === userId);
+                if (!participant) {
+                    console.log("User not found");
+                    return;
+                }
+                const broadcastMessage = {
+                    type: messages_1.DECLINE_REQUEST,
+                    payload: {
+                        message: "Request declined",
+                    },
+                };
+                participant.socket.send(JSON.stringify(broadcastMessage));
             }
         }));
     }

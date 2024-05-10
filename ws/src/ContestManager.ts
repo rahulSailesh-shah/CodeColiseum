@@ -14,7 +14,6 @@ import { User } from "./SocketManager";
 export class ContestManager {
     private contests: Contest[];
     private users: User[];
-    private pendingUser: User | null = null;
 
     constructor() {
         this.contests = [];

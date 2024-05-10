@@ -2,25 +2,12 @@ import { useEffect, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
+import { useSocketStore } from "@/store";
 
 export const EditorScreen = () => {
     const [code, setCode] = useState<string | undefined>("");
-    const [socket, setSocket] = useState<WebSocket | null>(null);
-
+    const socket = useSocketStore((state) => state.socket);
     const debouncedCode = useDebouncedValue(code);
-
-    useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080");
-        setSocket(socket);
-        socket.onopen = () => {
-            console.log("Connected to server");
-            socket?.send(
-                JSON.stringify({
-                    type: "init_contest",
-                })
-            );
-        };
-    }, []);
 
     useEffect(() => {
         socket?.send(
@@ -47,6 +34,15 @@ export const EditorScreen = () => {
         );
     };
 
+    const initContest = () => {
+        console.log("Init contest");
+        socket?.send(
+            JSON.stringify({
+                type: "init_contest",
+            })
+        );
+    };
+
     return (
         <>
             <Editor
@@ -63,6 +59,7 @@ export const EditorScreen = () => {
             />
 
             <Button onClick={submitCode}>Submit</Button>
+            <Button onClick={initContest}>Start</Button>
         </>
     );
 };
