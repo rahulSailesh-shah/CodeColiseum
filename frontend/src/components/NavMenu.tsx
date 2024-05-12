@@ -12,8 +12,13 @@ import {
     Avatar,
 } from "@nextui-org/react";
 import { AcmeLogo } from "../assets/AcmeLogo.jsx";
+import { Button } from "@nextui-org/react";
 
-export function NavMenu() {
+type NavMenuProps = {
+    initContest: () => void;
+};
+
+export function NavMenu({ initContest }: NavMenuProps) {
     return (
         <Navbar isBordered maxWidth='xl'>
             <NavbarContent justify='center'>
@@ -37,13 +42,21 @@ export function NavMenu() {
                     </Link>
                 </NavbarItem>
                 <NavbarItem>
-                    <Link color='foreground' href='#'>
+                    <Link color='foreground' href=''>
                         Integrations
                     </Link>
                 </NavbarItem>
             </NavbarContent>
 
             <NavbarContent as='div' className='items-center' justify='center'>
+                <Button
+                    radius='sm'
+                    className='bg-slate-700 text-white'
+                    onClick={() => initContest()}
+                >
+                    New Contest
+                </Button>
+
                 <Dropdown placement='bottom-end'>
                     <DropdownTrigger>
                         <Avatar

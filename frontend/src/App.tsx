@@ -19,7 +19,7 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path='/' element={<Home />} />
-                <Route path='/editor' element={<EditorScreen />} />
+                <Route path='/contest/:contestID' element={<EditorScreen />} />
             </Routes>
         </BrowserRouter>
     );

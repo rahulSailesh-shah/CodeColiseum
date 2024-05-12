@@ -5,6 +5,8 @@ import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <NextUIProvider>
-        <App />
+        <main className='light text-foreground bg-background'>
+            <App />
+        </main>
     </NextUIProvider>
 );
