@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Editor } from "@monaco-editor/react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
+import { Button } from "@nextui-org/react";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { useCodeStore, useSocketStore } from "../store";
 
@@ -58,8 +59,12 @@ export const EditorScreen = () => {
                 onChange={(value) => setCode(value)}
             />
 
-            <Button onClick={submitCode}>Submit</Button>
-            <Button onClick={initContest}>Start</Button>
+            <Button color='primary' onClick={submitCode}>
+                Submit
+            </Button>
+            <Button color='success' onClick={initContest}>
+                Start
+            </Button>
         </>
     );
 };

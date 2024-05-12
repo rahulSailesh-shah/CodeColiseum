@@ -1,3 +1,5 @@
+import { NavMenu } from "@/components/NavMenu";
+
 export const Home = () => {
-    return <div>Home</div>;
+    return <NavMenu />;
 };
