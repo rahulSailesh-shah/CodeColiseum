@@ -32,8 +32,6 @@ router.get("/refresh", (req, res) => __awaiter(void 0, void 0, void 0, function*
         const token = jsonwebtoken_1.default.sign({ userId: user.id }, JWT_SECRET);
         res.json({
             token,
-            id: user.id,
-            name: userDb === null || userDb === void 0 ? void 0 : userDb.name,
             email: userDb === null || userDb === void 0 ? void 0 : userDb.email,
             image: userDb === null || userDb === void 0 ? void 0 : userDb.image,
         });
