@@ -1,14 +1,13 @@
-import { Hono } from "hono";
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
+const session = require("express-session");
+const passport = require("passport");
 
-const { PrismaClient } = require("@prisma/client");
+require("dotenv").config();
 
-const prisma = new PrismaClient();
+const app = express();
 
-const app = new Hono();
-
-app.get("/", async (c) => {
-    const users = await prisma.user.findMany();
-    return c.json(users);
+app.listen(8000, () => {
+  console.log("Server is running on port 3000");
 });
-
-export default app;
