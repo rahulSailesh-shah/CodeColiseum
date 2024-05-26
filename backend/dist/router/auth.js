@@ -16,18 +16,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const passport_1 = __importDefault(require("passport"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const db_1 = require("../db");
 const router = (0, express_1.Router)();
 const CLIENT_URL = (_a = process.env.AUTH_REDIRECT_URL) !== null && _a !== void 0 ? _a : "http://localhost:5173/";
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 router.get("/refresh", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (req.user) {
         const user = req.user;
-        console.log(req.user);
+        // Token is issued so it can be shared b/w HTTP and ws server
+        const userDb = yield db_1.db.user.findFirst({
+            where: {
+                id: user.id,
+            },
+        });
         const token = jsonwebtoken_1.default.sign({ userId: user.id }, JWT_SECRET);
         res.json({
             token,
             id: user.id,
-            name: user,
+            name: userDb === null || userDb === void 0 ? void 0 : userDb.name,
+            email: userDb === null || userDb === void 0 ? void 0 : userDb.email,
+            image: userDb === null || userDb === void 0 ? void 0 : userDb.image,
         });
     }
     else {

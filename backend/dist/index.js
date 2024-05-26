@@ -13,7 +13,7 @@ const passport_2 = __importDefault(require("passport"));
 const app = (0, express_1.default)();
 dotenv_1.default.config();
 app.use((0, express_session_1.default)({
-    secret: process.env.COOKIE_SECRET || "keyboard cat",
+    secret: process.env.COOKIE_SECRET || "cookie secret",
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },

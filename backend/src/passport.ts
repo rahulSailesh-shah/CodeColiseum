@@ -1,6 +1,7 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 import passport from "passport";
 import dotenv from "dotenv";
+import { db } from "./db";
 
 dotenv.config();
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -26,10 +27,23 @@ export function initPassport() {
         profile: any,
         done: (error: any, user?: any) => void
       ) {
-        // TODO: Save the user to the database
-        console.log(profile);
+        const user = await db.user.upsert({
+          create: {
+            id: profile.id,
+            email: profile.emails[0].value,
+            name: profile.displayName,
+            image: profile.photos[0]?.value,
+            provider: "GOOGLE",
+          },
+          update: {
+            name: profile.displayName,
+          },
+          where: {
+            email: profile.emails[0].value,
+          },
+        });
 
-        done(null, profile);
+        done(null, user);
       }
     )
   );

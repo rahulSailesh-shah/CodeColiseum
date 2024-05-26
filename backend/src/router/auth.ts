@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import { db } from "../db";
 const router = Router();
 
 const CLIENT_URL = process.env.AUTH_REDIRECT_URL ?? "http://localhost:5173/";
@@ -14,11 +15,18 @@ router.get("/refresh", async (req: Request, res: Response) => {
   if (req.user) {
     const user = req.user as User;
 
+    // Token is issued so it can be shared b/w HTTP and ws server
+    const userDb = await db.user.findFirst({
+      where: {
+        id: user.id,
+      },
+    });
+
     const token = jwt.sign({ userId: user.id }, JWT_SECRET);
     res.json({
       token,
-      id: user.id,
-      name: user,
+      email: userDb?.email,
+      image: userDb?.image,
     });
   } else {
     res.status(401).json({ success: false, message: "Unauthorized" });

@@ -12,6 +12,7 @@ model User {
   email     String   @unique
   image     String?
   name      String
+  provider  String   @default("https://placeholderimage.com")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

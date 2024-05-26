@@ -16,6 +16,7 @@ exports.initPassport = void 0;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const passport_1 = __importDefault(require("passport"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const db_1 = require("./db");
 dotenv_1.default.config();
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -29,9 +30,23 @@ function initPassport() {
         callbackURL: "/auth/google/callback",
     }, function (accessToken, refreshToken, profile, done) {
         return __awaiter(this, void 0, void 0, function* () {
-            // TODO: Save the user to the database
-            console.log(profile);
-            done(null, profile);
+            var _a;
+            const user = yield db_1.db.user.upsert({
+                create: {
+                    id: profile.id,
+                    email: profile.emails[0].value,
+                    name: profile.displayName,
+                    image: (_a = profile.photos[0]) === null || _a === void 0 ? void 0 : _a.value,
+                    provider: "GOOGLE",
+                },
+                update: {
+                    name: profile.displayName,
+                },
+                where: {
+                    email: profile.emails[0].value,
+                },
+            });
+            done(null, user);
         });
     }));
     passport_1.default.serializeUser(function (user, cb) {
