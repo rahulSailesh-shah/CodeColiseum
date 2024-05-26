@@ -1,54 +1,42 @@
-import express, { Response, Request } from "express";
+import express from "express";
+import cors from "cors";
+import { initPassport } from "./passport";
+import authRoute from "./router/auth";
+import dotenv from "dotenv";
+import session from "express-session";
 import passport from "passport";
-import logger from "morgan";
-
-require("dotenv").config();
 
 const app = express();
-import cookieSession from "cookie-session";
-require("./passport");
+
+dotenv.config();
+app.use(
+  session({
+    secret: process.env.COOKIE_SECRET || "keyboard cat",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
+  })
+);
+
+initPassport();
+app.use(passport.initialize());
+app.use(passport.authenticate("session"));
+
+const allowedHosts = process.env.ALLOWED_HOSTS
+  ? process.env.ALLOWED_HOSTS.split(",")
+  : [];
 
 app.use(
-  cookieSession({
-    name: "google-auth-session",
-    keys: ["key1", "key2"],
-  })
-);
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(logger("dev"));
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("<button><a href='/auth'>Login With Google</a></button>");
-});
-
-// Auth
-app.get(
-  "/auth",
-  passport.authenticate("google", { scope: ["email", "profile"] })
-);
-
-// Auth Callback
-app.get(
-  "/auth/callback",
-  passport.authenticate("google", {
-    successRedirect: "/auth/callback/success",
-    failureRedirect: "/auth/callback/failure",
+  cors({
+    origin: allowedHosts,
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
   })
 );
 
-// success
-app.get("/auth/callback/success", (req: Request, res: Response) => {
-  if (!req.user) res.redirect("/auth/callback/failure");
-  console.log(req.user);
-  res.send("Welcome " + req?.user);
-});
+app.use("/auth", authRoute);
 
-// failure
-app.get("/auth/callback/failure", (req: any, res: express.Response) => {
-  res.send("Error");
-});
-
-app.listen(8000, () => {
-  console.log("Server running on PORT 8000");
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

@@ -1,32 +1,52 @@
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth2").Strategy;
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+import passport from "passport";
+import dotenv from "dotenv";
 
-passport.serializeUser((user: any, done: (arg0: null, arg1: any) => void) => {
-  done(null, user);
-});
-passport.deserializeUser(function (
-  user: any,
-  done: (arg0: null, arg1: any) => void
-) {
-  done(null, user);
-});
+dotenv.config();
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID, // Your Credentials here.
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET, // Your Credentials here.
-      callbackURL: "http://localhost:8000/auth/callback",
-      passReqToCallback: true,
-    },
-    function (
-      request: any,
-      accessToken: any,
-      refreshToken: any,
-      profile: any,
-      done: (arg0: null, arg1: any) => any
-    ) {
-      return done(null, profile);
-    }
-  )
-);
+export function initPassport() {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    throw new Error(
+      "Missing environment variables for authentication providers"
+    );
+  }
+
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: "/auth/google/callback",
+      },
+      async function (
+        accessToken: string,
+        refreshToken: string,
+        profile: any,
+        done: (error: any, user?: any) => void
+      ) {
+        // TODO: Save the user to the database
+        console.log(profile);
+
+        done(null, profile);
+      }
+    )
+  );
+
+  passport.serializeUser(function (user: any, cb) {
+    process.nextTick(function () {
+      return cb(null, {
+        id: user.id,
+        username: user.username,
+        picture: user.picture,
+      });
+    });
+  });
+
+  passport.deserializeUser(function (user: any, cb) {
+    process.nextTick(function () {
+      return cb(null, user);
+    });
+  });
+}

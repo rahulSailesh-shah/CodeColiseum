@@ -4,40 +4,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const passport_1 = __importDefault(require("passport"));
-const morgan_1 = __importDefault(require("morgan"));
-require("dotenv").config();
+const cors_1 = __importDefault(require("cors"));
+const passport_1 = require("./passport");
+const auth_1 = __importDefault(require("./router/auth"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const express_session_1 = __importDefault(require("express-session"));
+const passport_2 = __importDefault(require("passport"));
 const app = (0, express_1.default)();
-const cookie_session_1 = __importDefault(require("cookie-session"));
-require("./passport");
-app.use((0, cookie_session_1.default)({
-    name: "google-auth-session",
-    keys: ["key1", "key2"],
+dotenv_1.default.config();
+app.use((0, express_session_1.default)({
+    secret: process.env.COOKIE_SECRET || "keyboard cat",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
 }));
-app.use(passport_1.default.initialize());
-app.use(passport_1.default.session());
-app.use((0, morgan_1.default)("dev"));
-app.get("/", (req, res) => {
-    res.send("<button><a href='/auth'>Login With Google</a></button>");
-});
-// Auth
-app.get("/auth", passport_1.default.authenticate("google", { scope: ["email", "profile"] }));
-// Auth Callback
-app.get("/auth/callback", passport_1.default.authenticate("google", {
-    successRedirect: "/auth/callback/success",
-    failureRedirect: "/auth/callback/failure",
+(0, passport_1.initPassport)();
+app.use(passport_2.default.initialize());
+app.use(passport_2.default.authenticate("session"));
+const allowedHosts = process.env.ALLOWED_HOSTS
+    ? process.env.ALLOWED_HOSTS.split(",")
+    : [];
+app.use((0, cors_1.default)({
+    origin: allowedHosts,
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
 }));
-// success
-app.get("/auth/callback/success", (req, res) => {
-    if (!req.user)
-        res.redirect("/auth/callback/failure");
-    console.log(req.user);
-    res.send("Welcome " + (req === null || req === void 0 ? void 0 : req.user));
-});
-// failure
-app.get("/auth/callback/failure", (req, res) => {
-    res.send("Error");
-});
-app.listen(8000, () => {
-    console.log("Server running on PORT 8000");
+app.use("/auth", auth_1.default);
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
