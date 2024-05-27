@@ -37,16 +37,9 @@ router.get("/login/failed", (req: Request, res: Response) => {
   res.status(401).json({ success: false, message: "failure" });
 });
 
-router.get("/logout", (req: Request, res: Response) => {
-  req.logout((err) => {
-    if (err) {
-      console.error("Error logging out:", err);
-      res.status(500).json({ error: "Failed to log out" });
-    } else {
-      res.clearCookie("jwt");
-      res.redirect("http://localhost:5173/");
-    }
-  });
+router.post("/logout", (req: Request, res: Response) => {
+  res.clearCookie("connect.sid");
+  res.status(200).json({ success: true, message: "Logged out" });
 });
 
 router.get(

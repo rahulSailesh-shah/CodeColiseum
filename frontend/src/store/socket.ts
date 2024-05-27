@@ -1,14 +1,14 @@
 import { create } from "zustand";
 
 type SocketStore = {
-    socket: WebSocket | null;
+  socket: WebSocket | null;
 };
 
 type Action = {
-    setSocket: (firstName: SocketStore["socket"]) => void;
+  setSocket: (socket: SocketStore["socket"]) => void;
 };
 
 export const socketStore = create<SocketStore & Action>((set) => ({
-    socket: null,
-    setSocket: (socket) => set({ socket }),
+  socket: null,
+  setSocket: (socket) => set({ socket }),
 }));

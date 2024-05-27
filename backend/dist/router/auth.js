@@ -43,17 +43,9 @@ router.get("/refresh", (req, res) => __awaiter(void 0, void 0, void 0, function*
 router.get("/login/failed", (req, res) => {
     res.status(401).json({ success: false, message: "failure" });
 });
-router.get("/logout", (req, res) => {
-    req.logout((err) => {
-        if (err) {
-            console.error("Error logging out:", err);
-            res.status(500).json({ error: "Failed to log out" });
-        }
-        else {
-            res.clearCookie("jwt");
-            res.redirect("http://localhost:5173/");
-        }
-    });
+router.post("/logout", (req, res) => {
+    res.clearCookie("connect.sid");
+    res.status(200).json({ success: true, message: "Logged out" });
 });
 router.get("/google", passport_1.default.authenticate("google", { scope: ["profile", "email"] }));
 router.get("/google/callback", passport_1.default.authenticate("google", {

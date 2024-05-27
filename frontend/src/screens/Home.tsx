@@ -1,64 +1,47 @@
+import { getUser } from "@/api/getUser";
 import { NavMenu } from "@/components/NavMenu";
-import { ROOM_CREATED } from "@/lib/messages";
-import { useSocketStore } from "@/store";
-import { Button } from "@nextui-org/react";
+import { useUserStore } from "@/store";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
-export const BACKEND_URL = "http://localhost:8000";
+// import { ROOM_CREATED } from "@/lib/messages";
+// import { useSocketStore } from "@/store";
 
 export const Home = () => {
-  const socket = useSocketStore((state) => state.socket);
-  const navigate = useNavigate();
-
+  const setUser = useUserStore((state) => state.setUser);
   useEffect(() => {
-    if (!socket) return;
-
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-
-      if (message.type === ROOM_CREATED) {
-        const { contestID } = message.payload;
-        navigate(`/contest/${contestID}`);
-      }
-    };
-  }, [navigate, socket]);
-
-  const initContest = () => {
-    socket?.send(
-      JSON.stringify({
-        type: "init_contest",
-      })
-    );
-  };
-
-  const makeRequest = async () => {
-    try {
-      const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+    const fetchUser = async () => {
+      const user = await getUser();
+      if (!user) return;
+      setUser({
+        user,
       });
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+    };
+    fetchUser();
+  }, [setUser]);
 
-  const google = () => {
-    window.open(`${BACKEND_URL}/auth/google`, "_self");
-  };
+  // useEffect(() => {
+  //   if (!socket) return;
+
+  //   socket.onmessage = (event) => {
+  //     const message = JSON.parse(event.data);
+
+  //     if (message.type === ROOM_CREATED) {
+  //       const { contestID } = message.payload;
+  //       navigate(`/contest/${contestID}`);
+  //     }
+  //   };
+  // }, [navigate, socket]);
+
+  // const initContest = () => {
+  //   socket?.send(
+  //     JSON.stringify({
+  //       type: "init_contest",
+  //     })
+  //   );
+  // };
 
   return (
     <div>
-      <NavMenu initContest={initContest} />
-      <Button onClick={makeRequest}>Check</Button>
-      <Button onClick={google}>Login With Google</Button>
+      <NavMenu />
     </div>
   );
 };
