@@ -39,6 +39,11 @@ router.get("/login/failed", (req: Request, res: Response) => {
 
 router.post("/logout", (req: Request, res: Response) => {
   res.clearCookie("connect.sid");
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+  });
   res.status(200).json({ success: true, message: "Logged out" });
 });
 
@@ -69,3 +74,6 @@ router.get(
 );
 
 export default router;
+function next(err: any): void {
+  throw new Error("Function not implemented.");
+}

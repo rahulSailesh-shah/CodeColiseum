@@ -45,6 +45,11 @@ router.get("/login/failed", (req, res) => {
 });
 router.post("/logout", (req, res) => {
     res.clearCookie("connect.sid");
+    req.logout(function (err) {
+        if (err) {
+            return next(err);
+        }
+    });
     res.status(200).json({ success: true, message: "Logged out" });
 });
 router.get("/google", passport_1.default.authenticate("google", { scope: ["profile", "email"] }));
@@ -58,3 +63,6 @@ router.get("/github/callback", passport_1.default.authenticate("github", {
     failureRedirect: "/login/failed",
 }));
 exports.default = router;
+function next(err) {
+    throw new Error("Function not implemented.");
+}
