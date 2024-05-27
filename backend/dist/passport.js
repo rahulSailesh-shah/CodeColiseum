@@ -14,14 +14,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initPassport = void 0;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const GithubStrategy = require("passport-github2").Strategy;
 const passport_1 = __importDefault(require("passport"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = require("./db");
 dotenv_1.default.config();
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 function initPassport() {
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    if (!GOOGLE_CLIENT_ID ||
+        !GOOGLE_CLIENT_SECRET ||
+        !GITHUB_CLIENT_ID ||
+        !GITHUB_CLIENT_SECRET) {
         throw new Error("Missing environment variables for authentication providers");
     }
     passport_1.default.use(new GoogleStrategy({
@@ -44,6 +50,32 @@ function initPassport() {
                 },
                 where: {
                     email: profile.emails[0].value,
+                },
+            });
+            done(null, user);
+        });
+    }));
+    passport_1.default.use(new GithubStrategy({
+        clientID: GITHUB_CLIENT_ID,
+        clientSecret: GITHUB_CLIENT_SECRET,
+        callbackURL: "/auth/github/callback",
+    }, function (accessToken, refreshToken, profile, done) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const email = profile._json.email || profile.username + "@github.com";
+            const user = yield db_1.db.user.upsert({
+                create: {
+                    id: profile.id,
+                    email: email,
+                    name: profile.username,
+                    provider: "GITHUB",
+                    image: (_a = profile.photos[0]) === null || _a === void 0 ? void 0 : _a.value,
+                },
+                update: {
+                    name: profile.username,
+                },
+                where: {
+                    email: email,
                 },
             });
             done(null, user);

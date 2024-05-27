@@ -25,7 +25,7 @@ router.get("/refresh", async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user.id }, JWT_SECRET);
     res.json({
       token,
-      email: userDb?.email,
+      name: userDb?.name,
       image: userDb?.image,
     });
   } else {
@@ -57,6 +57,19 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
+    successRedirect: CLIENT_URL,
+    failureRedirect: "/login/failed",
+  })
+);
+
+router.get(
+  "/github",
+  passport.authenticate("github", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/github/callback",
+  passport.authenticate("github", {
     successRedirect: CLIENT_URL,
     failureRedirect: "/login/failed",
   })

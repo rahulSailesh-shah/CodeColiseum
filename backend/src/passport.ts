@@ -1,4 +1,5 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const GithubStrategy = require("passport-github2").Strategy;
 import passport from "passport";
 import dotenv from "dotenv";
 import { db } from "./db";
@@ -6,9 +7,16 @@ import { db } from "./db";
 dotenv.config();
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
 export function initPassport() {
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+  if (
+    !GOOGLE_CLIENT_ID ||
+    !GOOGLE_CLIENT_SECRET ||
+    !GITHUB_CLIENT_ID ||
+    !GITHUB_CLIENT_SECRET
+  ) {
     throw new Error(
       "Missing environment variables for authentication providers"
     );
@@ -40,6 +48,41 @@ export function initPassport() {
           },
           where: {
             email: profile.emails[0].value,
+          },
+        });
+
+        done(null, user);
+      }
+    )
+  );
+
+  passport.use(
+    new GithubStrategy(
+      {
+        clientID: GITHUB_CLIENT_ID,
+        clientSecret: GITHUB_CLIENT_SECRET,
+        callbackURL: "/auth/github/callback",
+      },
+      async function (
+        accessToken: string,
+        refreshToken: string,
+        profile: any,
+        done: (error: any, user?: any) => void
+      ) {
+        const email = profile._json.email || profile.username + "@github.com";
+        const user = await db.user.upsert({
+          create: {
+            id: profile.id,
+            email: email,
+            name: profile.username,
+            provider: "GITHUB",
+            image: profile.photos[0]?.value,
+          },
+          update: {
+            name: profile.username,
+          },
+          where: {
+            email: email,
           },
         });
 

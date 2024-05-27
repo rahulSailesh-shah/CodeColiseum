@@ -32,7 +32,7 @@ router.get("/refresh", (req, res) => __awaiter(void 0, void 0, void 0, function*
         const token = jsonwebtoken_1.default.sign({ userId: user.id }, JWT_SECRET);
         res.json({
             token,
-            email: userDb === null || userDb === void 0 ? void 0 : userDb.email,
+            name: userDb === null || userDb === void 0 ? void 0 : userDb.name,
             image: userDb === null || userDb === void 0 ? void 0 : userDb.image,
         });
     }
@@ -57,6 +57,11 @@ router.get("/logout", (req, res) => {
 });
 router.get("/google", passport_1.default.authenticate("google", { scope: ["profile", "email"] }));
 router.get("/google/callback", passport_1.default.authenticate("google", {
+    successRedirect: CLIENT_URL,
+    failureRedirect: "/login/failed",
+}));
+router.get("/github", passport_1.default.authenticate("github", { scope: ["profile", "email"] }));
+router.get("/github/callback", passport_1.default.authenticate("github", {
     successRedirect: CLIENT_URL,
     failureRedirect: "/login/failed",
 }));
