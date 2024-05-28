@@ -16,7 +16,7 @@ import { useUserStore } from "@/store/index.js";
 
 export function NavMenu() {
   const navigate = useNavigate();
-  const user = useUserStore((state) => state.user);
+  const { user, setUser } = useUserStore((state) => state);
 
   const logout = async () => {
     try {
@@ -28,7 +28,14 @@ export function NavMenu() {
         },
         credentials: "include",
       });
-      navigate(0);
+      setUser({
+        user: {
+          name: undefined,
+          image: undefined,
+          token: undefined,
+        },
+      });
+      navigate("/login");
     } catch (error) {
       console.log(error);
     }

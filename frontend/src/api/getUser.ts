@@ -1,7 +1,7 @@
 import { User } from "@/store/user";
 
 export const getUser = async (): Promise<null | User> => {
-  const BACKEND_URL = "http://localhost:8000";
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL as string;
   try {
     const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
       method: "GET",
