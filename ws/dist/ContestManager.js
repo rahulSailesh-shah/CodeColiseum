@@ -18,6 +18,7 @@ class ContestManager {
         this.users = [];
     }
     addUsers(user) {
+        console.log("New user connected");
         this.users.push(user);
         const broadcastMessage = {
             type: "user_joined",

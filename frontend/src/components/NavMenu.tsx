@@ -16,30 +16,7 @@ import { useUserStore } from "@/store/index.js";
 
 export function NavMenu() {
   const navigate = useNavigate();
-  const { user, setUser } = useUserStore((state) => state);
-
-  const logout = async () => {
-    try {
-      await fetch("http://localhost:8000/auth/logout", {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-      setUser({
-        user: {
-          name: undefined,
-          image: undefined,
-          token: undefined,
-        },
-      });
-      navigate("/login");
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const { user, logOut } = useUserStore((state) => state);
 
   return (
     <Navbar isBordered maxWidth="xl">
@@ -51,7 +28,7 @@ export function NavMenu() {
       </NavbarContent>
 
       <NavbarContent as="div" className="items-center" justify="center">
-        {user.name && user.token ? (
+        {user?.name && user?.token ? (
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
@@ -61,7 +38,7 @@ export function NavMenu() {
                 color="secondary"
                 name="Jason Hughes"
                 size="sm"
-                src={user.image}
+                src={user?.image}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="Profile Actions" variant="flat">
@@ -69,7 +46,11 @@ export function NavMenu() {
                 <p className="font-semibold">Signed in as</p>
                 <p className="font-semibold">{user.name}</p>
               </DropdownItem>
-              <DropdownItem key="logout" color="danger" onClick={logout}>
+              <DropdownItem
+                key="logout"
+                color="danger"
+                onClick={() => logOut()}
+              >
                 Log Out
               </DropdownItem>
             </DropdownMenu>

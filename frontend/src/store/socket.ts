@@ -2,13 +2,18 @@ import { create } from "zustand";
 
 type SocketStore = {
   socket: WebSocket | null;
+  setSocket: () => void;
 };
 
-type Action = {
-  setSocket: (socket: SocketStore["socket"]) => void;
-};
-
-export const socketStore = create<SocketStore & Action>((set) => ({
+export const socketStore = create<SocketStore>((set) => ({
   socket: null,
-  setSocket: (socket) => set({ socket }),
+  setSocket() {
+    const ws = new WebSocket("ws://localhost:8080");
+    ws.onopen = () => {
+      set({ socket: ws });
+    };
+    ws.onclose = () => {
+      set({ socket: null });
+    };
+  },
 }));
