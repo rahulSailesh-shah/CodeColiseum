@@ -4,33 +4,16 @@ import { Editor } from "@monaco-editor/react";
 import { Button } from "@nextui-org/react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
-import { useCodeStore, useSocketStore, useUserStore } from "../store";
-import { useNavigate } from "react-router-dom";
+import { useCodeStore, useSocketStore } from "../store";
 
 export const EditorScreen = () => {
   const { setCode, code } = useCodeStore((state) => state);
   const { setSocket, socket } = useSocketStore((state) => state);
-  const { user, fetchUser } = useUserStore((state) => state);
   const debouncedCode = useDebouncedValue(code);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    let x = true;
-    const authCheck = async () => {
-      if (!user) {
-        await fetchUser();
-      }
-      if (!user && x) {
-        navigate("/");
-      }
-      setSocket();
-    };
-    authCheck();
-
-    return () => {
-      x = false;
-    };
-  }, [user, fetchUser, navigate, setSocket]);
+    setSocket();
+  }, [setSocket]);
 
   useEffect(() => {
     socket?.send(

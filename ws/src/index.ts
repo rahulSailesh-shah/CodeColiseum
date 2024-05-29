@@ -1,22 +1,20 @@
-import express from "express";
-import cors from "cors";
 import { WebSocketServer, WebSocket } from "ws";
 import { ContestManager } from "./ContestManager";
 import { User } from "./SocketManager";
+import url from "url";
 
-const app = express();
-const httpServer = app.listen(8080);
-
-app.use(cors());
-
-const wss = new WebSocketServer({ server: httpServer });
+const wss = new WebSocketServer({ port: 8080 });
 
 const contestManager = new ContestManager();
 
-wss.on("connection", (ws: WebSocket) => {
-    ws.on("error", console.error);
-    contestManager.addUsers(new User("user", ws));
-    ws.on("close", (data) => {
-        contestManager.removeUser(data.toString());
-    });
+wss.on("connection", (ws: WebSocket, req: Request) => {
+  ws.on("error", console.error);
+
+  const token: string = url.parse(req.url, true).query.token as string;
+  console.log(token);
+  contestManager.addUsers(new User("user", ws));
+
+  ws.on("close", (data) => {
+    contestManager.removeUser(data.toString());
+  });
 });
