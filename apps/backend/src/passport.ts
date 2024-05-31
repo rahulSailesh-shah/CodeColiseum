@@ -3,7 +3,6 @@ const GithubStrategy = require("passport-github2").Strategy;
 import passport from "passport";
 import dotenv from "dotenv";
 import prisma from "@repo/db/client";
-// import { db } from "./db";
 
 dotenv.config();
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

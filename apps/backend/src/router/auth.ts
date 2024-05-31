@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
-import { db } from "../db";
+import prisma from "@repo/db/client";
 const router = Router();
 
 const CLIENT_URL = process.env.AUTH_REDIRECT_URL ?? "http://localhost:5173/";
@@ -16,7 +16,7 @@ router.get("/refresh", async (req: Request, res: Response) => {
     const user = req.user as User;
 
     // Token is issued so it can be shared b/w HTTP and ws server
-    const userDb = await db.user.findFirst({
+    const userDb = await prisma.user.findFirst({
       where: {
         id: user.id,
       },
