@@ -1,6 +1,6 @@
 import { NavMenu } from "@/components/NavMenu";
+import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store";
-import { Button } from "@nextui-org/react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // import { ROOM_CREATED } from "@/lib/messages";
@@ -15,7 +15,7 @@ export const Home = () => {
   }, [fetchUser]);
 
   return (
-    <div>
+    <div className="bg-slate-100 w-screen h-screen">
       <NavMenu />
       <Button onClick={() => navigate("/contest/9874139569")}>
         Start Contest
