@@ -15,7 +15,7 @@ wss.on("connection", (ws: WebSocket, req: Request) => {
   ws.on("error", console.error);
 
   const token: string = url.parse(req.url, true).query.token as string;
-  const userId = extractUserId(token);
+  // const userId = extractUserId(token);
 
   contestManager.addUsers(new User("user", ws));
 

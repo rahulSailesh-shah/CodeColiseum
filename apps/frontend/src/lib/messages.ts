@@ -1,0 +1,10 @@
+export const ROOM_CREATED = "room_created";
+export const CODE_CHANGE = "code_change";
+export const CODE_SUBMIT = "code_submit";
+export const CODE_QUEUE = "code_queue";
+export const SUBMISSION_RESULT = "submission_result";
+export const SUBMISSION_TOKEN = "submission_token";
+export const JOIN_REQUEST = "join_request";
+export const ACCEPT_REQUEST = "accept_request";
+export const DECLINE_REQUEST = "decline_request";
+export const CONTEST_FULL = "contest_full";
