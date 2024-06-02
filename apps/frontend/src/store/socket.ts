@@ -8,11 +8,11 @@ type SocketStore = {
 
 export const socketStore = create<SocketStore>((set) => ({
   socket: null,
-  setSocket() {
+  async setSocket() {
     const user = useUserStore.getState().user;
     if (!user) return;
 
-    const ws = new WebSocket(`ws://localhost:8080/?token=${user.token}`);
+    const ws = new WebSocket(`ws://localhost:8080/?userToken=${user.token}`);
 
     ws.onopen = () => {
       set({ socket: ws });

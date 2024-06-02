@@ -39,8 +39,8 @@ export class ContestManager {
     // TODO: Logic to remove user if participant leaves and update status
   }
 
-  initContest(user: User) {
-    const contest = new Contest(user);
+  initContest(user: User, contestID: string) {
+    const contest = new Contest(user, contestID);
     this.contests.push(contest);
     console.log("NEW CONTEST\n", contest.id);
 
@@ -74,15 +74,17 @@ export class ContestManager {
     console.log(contest.viewers.length, " viewers");
   }
 
-  handleCodeChange(user: User, code: string) {
+  handleCodeChange(user: User, code: string, contestID: string) {
     const contest = this.contests.find(
-      (x) => x.participant1.id === user.id || x.participant2?.id === user.id
+      (x) =>
+        x.id === contestID &&
+        (x.participant1.id === user.id || x.participant2?.id === user.id)
     );
     if (!contest) {
       console.log("Contest not found");
       return;
     }
-    console.log(`[.] ${user.id} changed code: ${code}`);
+    console.log(`[.] ${user.id} CODE: ${code}, CONTEST_ID: ${contest.id}`);
     contest.saveCodeProgress(user, code);
 
     const broadcastMessage = {
@@ -112,7 +114,7 @@ export class ContestManager {
       const message = JSON.parse(data.toString());
 
       if (message.type === INIT_CONTEST) {
-        this.initContest(user);
+        this.initContest(user, message.payload.contestID);
       }
 
       if (message.type === JOIN_ROOM) {
@@ -128,7 +130,11 @@ export class ContestManager {
           console.log("Code not provided");
           return;
         }
-        this.handleCodeChange(user, message.payload.code);
+        this.handleCodeChange(
+          user,
+          message.payload.code,
+          message.payload.contestID
+        );
       }
 
       if (message.type === CODE_SUBMIT) {

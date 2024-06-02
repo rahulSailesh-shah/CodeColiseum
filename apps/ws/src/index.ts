@@ -14,13 +14,15 @@ const contestManager = new ContestManager();
 wss.on("connection", async (ws: WebSocket, req: Request) => {
   ws.on("error", console.error);
 
-  const token: string = url.parse(req.url, true).query.token as string;
-  const user = await extractUserId(token);
+  const { userToken } = url.parse(req.url, true).query;
+
+  const user = await extractUserId(userToken as string);
 
   if (!user) {
     ws.close();
     return;
   }
+
   const newUser: UserType = {
     id: user.id,
     name: user.name,

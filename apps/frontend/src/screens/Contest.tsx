@@ -23,7 +23,6 @@ const Contest = () => {
   const user = useUserStore((state) => state.user);
 
   const handleShareClick = () => {
-    console.log(user);
     if (user?.name && user?.token) {
       const contestID = uuidv4();
       navigate(`/contest/${contestID}`);
@@ -49,6 +48,7 @@ const Contest = () => {
       >
         Start Contest
       </Button>
+
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
