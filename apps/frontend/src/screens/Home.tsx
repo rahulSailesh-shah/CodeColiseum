@@ -17,9 +17,7 @@ export const Home = () => {
   return (
     <div className="bg-slate-100 w-screen h-screen">
       <NavMenu />
-      <Button onClick={() => navigate("/contest/9874139569")}>
-        Start Contest
-      </Button>
+      <Button onClick={() => navigate("/contest")}>Start Contest</Button>
     </div>
   );
 };

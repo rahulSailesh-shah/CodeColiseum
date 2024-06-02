@@ -5,12 +5,16 @@ import Login from "./screens/Login";
 import { Toaster } from "./components/ui/toaster";
 import { useUserStore } from "./store";
 import { useEffect } from "react";
+import Contest from "./screens/Contest";
+import { NextUIProvider } from "@nextui-org/react";
 
 function App() {
   return (
     <>
-      <Auth />
-      <Toaster />
+      <NextUIProvider>
+        <Auth />
+        <Toaster />
+      </NextUIProvider>
     </>
   );
 }
@@ -27,6 +31,7 @@ function Auth() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/contest" element={<Contest />} />
         <Route
           path="/contest/:contestID"
           element={user ? <EditorScreen /> : <Login />}
